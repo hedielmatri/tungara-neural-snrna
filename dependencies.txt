@@ -1,0 +1,10 @@
+Seurat
+dplyr
+readxl
+tidyr
+HGNChelper
+ggplot2
+future
+devtools
+hdWGCNA
+WGCNA
