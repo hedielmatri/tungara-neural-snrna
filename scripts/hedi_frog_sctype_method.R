@@ -17,7 +17,6 @@ library(WGCNA)
 
 
 # CHECKPOINT 5.5: Annotation
-# ==============================================================================
 
 if (file.exists("tunga_frog_annotated.rds")) {
   
@@ -109,14 +108,12 @@ if (file.exists("tunga_frog_annotated.rds")) {
 }
 
 
-#DimPlot(tunga_frog_merged, reduction = "umap_by_pca", label = TRUE, repel = TRUE, label.size = 4) +  ggtitle("Tungara frog brain")
+DimPlot(tunga_frog_merged, reduction = "umap_by_pca", label = TRUE, repel = TRUE, label.size = 4) +  ggtitle("Tungara frog brain ortho finder")
 
 
 
 
 # CHECKPOINT 6: Differential expression by sound
-# ==============================================================================
-
 
 #DefaultAssay(tunga_frog_merged) = "RNA"
 
@@ -283,7 +280,6 @@ top_genes_wc_gn = all_markers_WC_vs_GN %>%
  
  
  # CHECKPOINT 7: Map LOC genes to Xenopus orthologs
- # ==============================================================================
 
   
  orthos = read.csv("xenopus_gene_to_tungara_gene.csv")
@@ -311,7 +307,6 @@ top_genes_wc_gn = all_markers_WC_vs_GN %>%
  
  
  # CHECKPOINT 8: hdWGCNA
- # ==============================================================================
  
 #install.packages("BiocManager")
 #BiocManager::install(c("harmony", "UCell", "GeneOverlap"))

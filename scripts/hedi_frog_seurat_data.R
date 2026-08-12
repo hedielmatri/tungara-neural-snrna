@@ -6,9 +6,9 @@ library(future)
 set.seed(123)
 
 # CHECKPOINT 1: Tungara Data Processing
-# ==============================================================================
-if (file.exists("/tunga_frog_clustered.rds")) {
-  tunga_frog_merged = readRDS("/tunga_frog_clustered.rds")
+
+if (file.exists("tunga_frog_clustered.rds")) {
+  tunga_frog_merged = readRDS("tunga_frog_clustered.rds")
 } else {
   filtered_counts_gn = Read10X_h5("stor/scratch/FRI-BigDataBio/FRI_summer_2026/frog_data/TF_GN_outs/outs/filtered_feature_bc_matrix.h5")
   filtered_counts_wc = Read10X_h5("stor/scratch/FRI-BigDataBio/FRI_summer_2026/frog_data/TF_GN_outs/outs/TF_WC_outs/outs/filtered_feature_bc_matrix.h5")
@@ -38,30 +38,33 @@ if (file.exists("/tunga_frog_clustered.rds")) {
   tunga_frog_merged = RunUMAP(tunga_frog_merged, dims = 1:20, reduction = "pca", reduction.name = "umap_by_pca")
   tunga_frog_merged = JoinLayers(tunga_frog_merged)
   
-  saveRDS(tunga_frog_merged, "/tunga_frog_clustered.rds") 
+  saveRDS(tunga_frog_merged, "tunga_frog_clustered.rds") 
 }
 
+#DimHeatmap(tunga_frog_merged, dims = 1:25, cells = 500, balanced = TRUE)
+#DimHeatmap(tunga_frog_merged, dims = 26:50, cells = 500, balanced = TRUE)
+#DimHeatmap(tunga_frog_merged, dims = 30:35, cells = 5000, balanced = TRUE)
 
 # CHECKPOINT 2: FindAllMarkers
-# ==============================================================================
-if (file.exists("/tunga_frog_markers.rds")) {
-  markers = readRDS("/tunga_frog_markers.rds")
+
+if (file.exists("tunga_frog_markers.rds")) {
+  markers = readRDS("tunga_frog_markers.rds")
 } else {
   plan(multisession, workers = 22)
   markers = FindAllMarkers(
     tunga_frog_merged, 
     only.pos = TRUE, 
     min.pct = 0.25, 
-    logfc.threshold = 0.25,
+    logfc.threshold = 0.693,
     max.cells.per.ident = 500
   )
   plan(sequential)
-  saveRDS(markers, "/tunga_frog_markers.rds") 
+  saveRDS(markers, "tunga_frog_markers.rds") 
 }
 
 # CHECKPOINT 3: Xenopus reference
-# ==============================================================================
-if (file.exists("/xeno_brain_clean.rds")) {
+
+if (file.exists("xeno_brain_clean.rds")) {
   xeno_brain_clean = readRDS("/xeno_brain_clean.rds")
   xeno_meta = read.csv("/Brain_cell_info.csv", row.names = 1) 
 } else {
@@ -102,11 +105,11 @@ if (file.exists("/xeno_brain_clean.rds")) {
   pituitary_keywords = "Gonadotroph|Thyrotroph|Endocrine|Growth hormone|Prolactin|Melanotrope"
   xeno_brain_clean = subset(xeno_brain, subset = !grepl(pituitary_keywords, celltype))
   
-  saveRDS(xeno_brain_clean, "/xeno_brain_clean.rds") # 
+  saveRDS(xeno_brain_clean, "xeno_brain_clean.rds") # 
 }
 
 # 4. TRANSLATE THE GENOME
-# ==============================================================================
+
 tung_counts = LayerData(tunga_frog_merged, assay = "RNA", layer = "counts")
 rownames(tung_counts) = tolower(rownames(tung_counts))
 
@@ -138,8 +141,8 @@ xeno_brain_mapped = CreateSeuratObject(counts = xeno_counts_common, meta.data = 
 xeno_brain_mapped = NormalizeData(xeno_brain_mapped)
 
 # CHECKPOINT 4: Label transfer
-# ==============================================================================
-if (file.exists("/tunga_frog_integrated.rds")) {
+
+if (file.exists("tunga_frog_integrated.rds")) {
   tunga_frog_merged = readRDS("/tunga_frog_integrated.rds")
 } else {
   anchors = FindTransferAnchors(
@@ -174,10 +177,10 @@ if (file.exists("/tunga_frog_integrated.rds")) {
   tunga_frog_merged = RenameIdents(tunga_frog_merged, final_mapping)
   tunga_frog_merged$Final_Annotations = Idents(tunga_frog_merged)
   
-  saveRDS(tunga_frog_merged, "/tunga_frog_integrated.rds") 
+  saveRDS(tunga_frog_merged, "tunga_frog_integrated.rds") 
 }
 
 
-# 5. FINAL PLOT
-# ==============================================================================
+# FINAL PLOT
+
 DimPlot(tunga_frog_merged, reduction = "umap_by_pca", label = TRUE, label.size = 3) + ggtitle("Tungara frog brain (Final Clean Annotation)")
